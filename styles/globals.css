@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orelega+One&display=swap');
+
+html, body, #__next { height: 100%; }
+body {
+    @apply bg-white text-gray-800 antialiased font-inter;
+}
+.container { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8; }
+
+/* Small visual helpers used in components */
+.card-shadow { box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.section-title { @apply text-sm text-red-600 font-semibold tracking-wide; }
