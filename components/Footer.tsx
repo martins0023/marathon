@@ -15,11 +15,11 @@ export default function Footer() {
           <div className="flex gap-3">
             <Link
               href="/rooms"
-              className="px-6 py-3 bg-primary text-white font-semibold"
+              className="px-6 py-3 text-sm bg-primary text-white font-semibold"
             >
               Browse rooms
             </Link>
-            <Link href="/contact" className="px-6 py-3 border border-gray-200">
+            <Link href="/contact" className="px-6 py-3 border border-gray-200 text-sm">
               Contact us
             </Link>
           </div>

@@ -227,9 +227,7 @@ export default function RoomsPage() {
         </div>
 
         {/* Booking form area (full width under listings on mobile; visible alongside on larger screens) */}
-        <div className="mt-10 bg-white rounded-2xl p-6 shadow-sm">
-          <h3 className="text-2xl font-semibold mb-4">Guest details & booking</h3>
-          <p className="text-sm text-gray-500 mb-4">Fill in guest details to continue to booking. Selected offer will be pre-filled where applicable.</p>
+        <div className="mt-10 bg-white rounded-2xl shadow-sm">
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">

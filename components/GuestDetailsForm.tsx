@@ -264,9 +264,8 @@ export default function GuestDetailsForm({
       noValidate
       aria-labelledby="guest-details-heading"
     >
-      <h3 id="guest-details-heading" className="text-2xl pt-20 font-bold mb-6">
-        Guest details
-      </h3>
+      <h3 className="text-2xl font-semibold mb-4">Guest details & booking</h3>
+      <p className="text-sm text-gray-500 mb-6">Fill in guest details to continue to booking. Selected offer will be pre-filled where applicable.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* First name */}
@@ -369,8 +368,9 @@ export default function GuestDetailsForm({
               <option value="GB">United Kingdom (+44)</option>
             </select>
           </div>
+        </div>
 
-          <div className="flex-1">
+        <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
               Phone number
             </label>
@@ -385,7 +385,7 @@ export default function GuestDetailsForm({
               }`}
               aria-invalid={!!errors.phone}
               aria-describedby={errors.phone ? "phone-error" : undefined}
-              placeholder={values.country === "NG" ? "e.g. 08123456789 or +2348123456789" : "e.g. +1 555 555 5555"}
+              placeholder={values.country === "NG" ? "e.g. 08123456789" : "e.g. +1 555 555 5555"}
               disabled={loading}
             />
             {errors.phone && (
@@ -394,7 +394,6 @@ export default function GuestDetailsForm({
               </p>
             )}
           </div>
-        </div>
 
         {/* Arrival & Departure (date-range picker with presets) */}
         <div>
@@ -469,18 +468,18 @@ export default function GuestDetailsForm({
           <button type="button" onClick={() => quickSetNights(3)} disabled={loading} className="px-3 py-1 rounded-md border text-sm">
             3 nights
           </button>
+        </div>
 
-          {/* human readable summary */}
-          <div className="ml-auto text-sm text-gray-600">
+        {/* human readable summary */}
+          <div className="text-sm text-gray-600">
             {values.arrivalDate && values.departureDate ? (
               <span>
                 {values.arrivalDate} → {values.departureDate} ({Math.max(1, (new Date(values.departureDate).getTime() - new Date(values.arrivalDate).getTime()) / (1000 * 60 * 60 * 24))} nights)
               </span>
             ) : (
-              <span>Choose dates</span>
+              <span className="text-red-600">Choose dates</span>
             )}
           </div>
-        </div>
 
         {/* Guests */}
         <div>
@@ -560,7 +559,7 @@ export default function GuestDetailsForm({
           <button
             type="submit"
             disabled={loading}
-            className={`inline-flex items-center justify-center px-6 py-3 text-white font-semibold ${
+            className={`inline-flex items-center justify-center px-6 py-3 text-sm text-white font-semibold ${
               loading ? "bg-gray-400" : "bg-primary hover:bg-[#cf2732]"
             } transition-colors`}
           >
@@ -588,7 +587,7 @@ export default function GuestDetailsForm({
                 } catch {}
               }
             }}
-            className="px-4 py-3 border flex flex- row gap-2 items-center border-gray-200 text-sm"
+            className="px-4 py-3 border flex flex-row gap-2 items-center border-gray-200 text-sm"
             disabled={loading}
           >
             <TimerReset className="w-5 h-5 text-gray-800" />
