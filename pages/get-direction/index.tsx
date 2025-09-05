@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Car, Bus, Walk, Milestone } from "lucide-react";
+import { MapPin, Car, Bus, Milestone } from "lucide-react";
 import { ScrollFade } from "../../components/animations";
 import FeatureCard from "../../components/FeatureCard";
 import QualityCTA from "../../components/QualityCTA";
