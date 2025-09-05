@@ -12,7 +12,7 @@ export default function Navbar() {
   const links = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
-    { href: "/apartments", label: "Get direction" },
+    { href: "/get-direction", label: "Get direction" },
     { href: "/apartments", label: "Apartments" },
     { href: "/gallery", label: "Gallery" },
     { href: "/rooms", label: "Book room" },
@@ -42,7 +42,7 @@ export default function Navbar() {
               About
             </Link>
             <Link
-              href="/apartments"
+              href="/get-direction"
               className="hover:text-primary transition-colors"
             >
               Get direction
