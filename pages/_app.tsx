@@ -1,7 +1,9 @@
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useState } from 'react';
 
 // The next/font/google imports are no longer needed here.
 // The font handling is now managed by Tailwind CSS via globals.css.
@@ -11,9 +13,22 @@ import Footer from '../components/Footer';
 // const inter = Inter({ subsets: ['latin'] });
 
 export default function App({ Component, pageProps }: AppProps) {
+  // create query client once per app instance
+  const [queryClient] = useState(() => {
+    return new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 1000 * 60 * 2, // 2 minutes (same as your hook)
+          retry: 1,
+          refetchOnWindowFocus: false,
+        },
+      },
+    });
+  });
   return (
     // We've removed the font class from the root div to rely on the body font
     // set in the globals.css file, which is the recommended approach.
+     <QueryClientProvider client={queryClient}>
     <div className="bg-white">
       {/* The Navbar is now a fixed component that sits at the top of the screen */}
       <Navbar />
@@ -26,5 +41,6 @@ export default function App({ Component, pageProps }: AppProps) {
       </main>
       <Footer />
     </div>
+    </QueryClientProvider>
   );
 }

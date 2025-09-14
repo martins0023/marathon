@@ -81,7 +81,7 @@ export default function Navbar() {
               Gallery
             </Link>
             <Link
-              href="/contact"
+              href="/rooms"
               className="px-5 py-2 border-2 border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
             >
               Book room
