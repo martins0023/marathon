@@ -1,54 +1,38 @@
 // hooks/useFormPersistence.ts
-import { useEffect } from "react";
-import { GuestDetailsValues, DEFAULTS } from "../types/guestForm";
-import { todayISO, addDaysISO } from "../utils/dateHelpers";
+import { Dispatch, SetStateAction, useCallback, useEffect } from "react";
 
-interface UsePersistenceProps {
-  values: GuestDetailsValues;
-  setValues: React.Dispatch<React.SetStateAction<GuestDetailsValues>>;
-  persistKey: string | null;
+interface UseFormPersistenceProps<T extends Record<string, any>> {
+  values: T;
+  setValues: Dispatch<SetStateAction<T>>;
+  persistKey?: string | null;
 }
 
-export function useFormPersistence({ values, setValues, persistKey }: UsePersistenceProps) {
-  // Restore persisted draft on mount
+export function useFormPersistence<T extends Record<string, any>>({ values, setValues, persistKey = "guestDetails" }: UseFormPersistenceProps<T>) {
   useEffect(() => {
     if (!persistKey) return;
-    
     try {
-      const raw = localStorage.getItem(persistKey);
+      const raw = sessionStorage.getItem(persistKey);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<GuestDetailsValues>;
-        setValues((prev) => ({ ...prev, ...parsed }));
-      } else {
-        // Set sensible date defaults if none exist
-        setValues((prev) => ({
-          ...prev,
-          arrivalDate: prev.arrivalDate || todayISO(),
-          departureDate: prev.departureDate || addDaysISO(prev.arrivalDate || todayISO(), 1),
-        }));
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") setValues((prev: T) => ({ ...prev, ...parsed }));
       }
-    } catch (e) {
-      // Ignore parsing errors
-    }
-  }, [persistKey, setValues]);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Persist on change
-  useEffect(() => {
+  const savePersistedData = useCallback(() => {
     if (!persistKey) return;
-    
     try {
-      localStorage.setItem(persistKey, JSON.stringify(values));
-    } catch {
-      // Ignore storage errors
-    }
+      sessionStorage.setItem(persistKey, JSON.stringify(values));
+    } catch {}
   }, [persistKey, values]);
 
-  const clearPersistedData = () => {
+  const clearPersistedData = useCallback(() => {
     if (!persistKey) return;
     try {
-      localStorage.removeItem(persistKey);
+      sessionStorage.removeItem(persistKey);
     } catch {}
-  };
+  }, [persistKey]);
 
-  return { clearPersistedData };
+  return { savePersistedData, clearPersistedData };
 }

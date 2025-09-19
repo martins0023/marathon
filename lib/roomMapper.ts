@@ -3,6 +3,7 @@ import { getFirstValidImage, safeImageSrc } from "../lib/imageUtils";
 import type { Room as RoomType } from "../lib/types";
 
 export interface MappedRoom {
+  priceNumbers: any;
   id: string;
   title: string;
   short: string;

@@ -21,11 +21,11 @@ export default function PhoneInput({
   const getPlaceholder = (countryCode: string) => {
     switch (countryCode) {
       case "NG":
-        return "e.g. 08123456789";
+        return "e.g. 812 345 6789";
       case "US":
-        return "e.g. +1 555 555 5555";
+        return "e.g. 555-555-5555";
       case "GB":
-        return "e.g. +44 20 1234 5678";
+        return "e.g. 7123 456789";
       default:
         return "Enter phone number";
     }
@@ -40,11 +40,14 @@ export default function PhoneInput({
         id="phone"
         name="phone"
         type="tel"
+        inputMode="tel"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-          error ? "border-red-400" : "border-gray-200"
-        }`}
+        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200
+        focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
+        ${error ? "border-red-400" : "border-gray-300"}
+        ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
+        `}
         aria-invalid={!!error}
         aria-describedby={error ? "phone-error" : undefined}
         placeholder={getPlaceholder(country)}

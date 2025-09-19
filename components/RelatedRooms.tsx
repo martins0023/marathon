@@ -26,7 +26,7 @@ export default function RelatedRooms({ rooms }: RelatedRoomsProps) {
   }
 
   return (
-    <div className="mt-12">
+    <div className="mt-40">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-semibold">You might also like</h3>

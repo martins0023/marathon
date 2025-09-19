@@ -1,16 +1,17 @@
 // types/guestForm.ts
-export type GuestDetailsValues = {
+export interface GuestDetailsValues {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
-  country?: string; // country code: "NG" | "US" | "GB"
-  arrivalDate: string; // yyyy-mm-dd
-  departureDate: string; // yyyy-mm-dd
+  phone: string;
+  country: string;
+  arrivalDate: string;
+  departureDate: string;
   guests: number;
   rooms: number;
   specialRequests?: string;
-};
+  totalPrice?: number;
+}
 
 export interface GuestDetailsFormProps {
   initialValues?: Partial<GuestDetailsValues>;

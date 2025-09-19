@@ -391,7 +391,7 @@ export default function RoomsContent() {
         {/* Booking form area (full width under listings on mobile; visible alongside on larger screens) */}
         <div className="mt-10 bg-white rounded-2xl shadow-sm pt-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+            {/* <div className="lg:col-span-2">
               <GuestDetailsForm
                 initialValues={
                   selectedOffer
@@ -420,7 +420,7 @@ export default function RoomsContent() {
                   );
                 }}
               />
-            </div>
+            </div> */}
 
             <aside className="lg:col-span-1">
               <div className="bg-white border rounded-xl p-4">

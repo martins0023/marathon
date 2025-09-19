@@ -1,7 +1,7 @@
-// components/GuestDetailsForm.tsx (Main Component)
+// components/GuestDetailsForm.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { GuestDetailsFormProps } from "../types/guestForm";
 import { useGuestDetailsForm } from "../hooks/useGuestDetailsForm";
 
@@ -17,7 +17,6 @@ export default function GuestDetailsForm({
   onSubmit,
   className = "",
   persistKey = "guestDetails",
-  redirectTo = "/checkout",
 }: GuestDetailsFormProps) {
   const {
     values,
@@ -26,153 +25,75 @@ export default function GuestDetailsForm({
     successMsg,
     updateField,
     resetForm,
-    handleSubmit,
+    handleSubmit: hookHandleSubmit,
   } = useGuestDetailsForm({
     initialValues,
-    onSubmit,
     persistKey,
-    redirectTo,
   });
 
+  // Apply initialValues to form fields (simple sync)
+  useEffect(() => {
+    if (!initialValues) return;
+    if (initialValues.email) updateField("email", initialValues.email);
+    if (initialValues.firstName) updateField("firstName", initialValues.firstName);
+    if (initialValues.lastName) updateField("lastName", initialValues.lastName);
+    if (initialValues.phone) updateField("phone", initialValues.phone);
+    if (initialValues.country) updateField("country", initialValues.country);
+    if (initialValues.arrivalDate) updateField("arrivalDate", initialValues.arrivalDate);
+    if (initialValues.departureDate) updateField("departureDate", initialValues.departureDate);
+    if (initialValues.guests) updateField("guests", initialValues.guests);
+    if (initialValues.rooms) updateField("rooms", initialValues.rooms);
+    if (initialValues.totalPrice !== undefined) updateField("totalPrice", initialValues.totalPrice);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues]);
+
+  async function submitHandler(e?: React.FormEvent) {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    const validated = await hookHandleSubmit();
+    if (!validated) return;
+    if (onSubmit) {
+      await onSubmit(validated);
+    }
+  }
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={`bg-white rounded-xl p-6 shadow-sm ${className}`}
-      noValidate
-      aria-labelledby="guest-details-heading"
-    >
-      <h3 id="guest-details-heading" className="text-2xl font-semibold mb-4">
-        Guest details & booking
-      </h3>
-      <p className="text-sm text-gray-500 mb-6">
-        Fill in guest details to continue to booking. Selected offer will be pre-filled where applicable.
-      </p>
+    <form onSubmit={submitHandler} className={`bg-white rounded-xl p-6 shadow-sm ${className}`} noValidate>
+      <h3 className="text-2xl font-semibold mb-4">Guest details & booking</h3>
+      <p className="text-sm text-gray-500 mb-6">Fill in guest details to continue to booking.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Name fields */}
-        <FormInput
-          id="firstName"
-          name="firstName"
-          label="First name"
-          value={values.firstName}
-          onChange={(value) => updateField("firstName", value)}
-          error={errors.firstName}
-          required
-          disabled={loading}
-          placeholder="First name"
-        />
+        <FormInput id="firstName" name="firstName" label="First name" value={values.firstName} onChange={(v) => updateField("firstName", v)} error={errors.firstName} required disabled={loading} />
+        <FormInput id="lastName" name="lastName" label="Last name" value={values.lastName} onChange={(v) => updateField("lastName", v)} error={errors.lastName} required disabled={loading} />
 
-        <FormInput
-          id="lastName"
-          name="lastName"
-          label="Last name"
-          value={values.lastName}
-          onChange={(value) => updateField("lastName", value)}
-          error={errors.lastName}
-          required
-          disabled={loading}
-          placeholder="Last name"
-        />
+        <FormInput id="email" name="email" type="email" inputMode="email" label="Email" value={values.email} onChange={(v) => updateField("email", v)} error={errors.email} required disabled={loading} className="md:col-span-2" />
 
-        {/* Email */}
-        <FormInput
-          id="email"
-          name="email"
-          type="email"
-          inputMode="email"
-          label="Email address"
-          value={values.email}
-          onChange={(value) => updateField("email", value)}
-          error={errors.email}
-          required
-          disabled={loading}
-          placeholder="you@example.com"
-          className="md:col-span-2"
-        />
-
-        {/* Country and Phone */}
-        <div className="flex gap-3 items-start">
-          <CountrySelect
-            value={values.country || "NG"}
-            onChange={(value) => updateField("country", value)}
-            disabled={loading}
-          />
+        <div className="md:col-span-2 flex gap-4">
+          <CountrySelect value={values.country || "NG"} onChange={(v) => updateField("country", v)} disabled={loading} />
+          <PhoneInput value={values.phone || ""} onChange={(v) => updateField("phone", v)} country={values.country || "NG"} error={errors.phone} disabled={loading} />
         </div>
 
-        <PhoneInput
-          value={values.phone || ""}
-          onChange={(value) => updateField("phone", value)}
-          country={values.country || "NG"}
-          error={errors.phone}
-          disabled={loading}
-        />
-
-        {/* Date range picker */}
         <DateRangePicker
           arrivalDate={values.arrivalDate}
           departureDate={values.departureDate}
-          onArrivalChange={(value) => updateField("arrivalDate", value)}
-          onDepartureChange={(value) => updateField("departureDate", value)}
+          onArrivalChange={(v) => updateField("arrivalDate", v)}
+          onDepartureChange={(v) => updateField("departureDate", v)}
           arrivalError={errors.arrivalDate}
           departureError={errors.departureDate}
           disabled={loading}
         />
 
-        {/* Guests and rooms */}
-        <FormInput
-          id="guests"
-          name="guests"
-          type="number"
-          label="Guests"
-          value={values.guests}
-          onChange={(value) => updateField("guests", Math.max(1, Number(value || 1)))}
-          error={errors.guests}
-          required
-          disabled={loading}
-          min={1}
-        />
+        <FormInput id="guests" name="guests" type="number" label="Guests" value={values.guests} onChange={(v) => updateField("guests", Math.max(1, Number(v || 1)))} error={errors.guests} required disabled={loading} />
+        <FormInput id="rooms" name="rooms" type="number" label="Rooms" value={values.rooms} onChange={(v) => updateField("rooms", Math.max(1, Number(v || 1)))} error={errors.rooms} required disabled={loading} />
 
-        <FormInput
-          id="rooms"
-          name="rooms"
-          type="number"
-          label="Rooms"
-          value={values.rooms}
-          onChange={(value) => updateField("rooms", Math.max(1, Number(value || 1)))}
-          error={errors.rooms}
-          required
-          disabled={loading}
-          min={1}
-        />
-
-        {/* Special requests */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="specialRequests">
-            Special requests
-          </label>
-          <textarea
-            id="specialRequests"
-            name="specialRequests"
-            value={values.specialRequests || ""}
-            onChange={(e) => updateField("specialRequests", e.target.value)}
-            rows={4}
-            className="w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/40 border-gray-200"
-            placeholder="Any dietary restrictions, accessibility needs, or special notes..."
-            disabled={loading}
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-2">Special requests</label>
+          <textarea value={values.specialRequests || ""} onChange={(e) => updateField("specialRequests", e.target.value)} rows={4} className="w-full border rounded-md px-4 py-3" disabled={loading} />
         </div>
       </div>
 
-      {/* Form actions */}
-      <FormActions 
-        loading={loading} 
-        successMsg={successMsg} 
-        onReset={resetForm} 
-      />
+      <div className="mt-4">
+        <FormActions loading={loading} successMsg={successMsg} onReset={resetForm} />
+      </div>
     </form>
   );
 }
-
-// Re-export types and utilities for external use
-export type { GuestDetailsValues, GuestDetailsFormProps } from "../types/guestForm";
-export { validatePhoneForCountry } from "../utils/phoneValidation";

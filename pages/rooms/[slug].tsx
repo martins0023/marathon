@@ -1,7 +1,7 @@
-// pages/rooms/[slug].tsx (Main File)
+// pages/rooms/[slug].tsx
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useRoom, useRooms as useRoomsList } from "../../hooks/useRooms";
 import { safeImageSrc } from "../../lib/imageUtils";
@@ -11,15 +11,17 @@ import RoomGallery from "../../components/RoomGallery";
 import RoomDetails from "../../components/RoomDetails";
 import BookingPanel from "../../components/BookingPanel";
 import RelatedRooms from "../../components/RelatedRooms";
-import GuestDetailsForm from "../../components/GuestDetailsForm";
 import QualityCTA from "../../components/QualityCTA";
 import LoadingState from "../../components/LoadingState";
 import ErrorState from "../../components/ErrorState";
+import GuestDetailsModal from "../../components/GuestDetailsModal";
 
 // Utils and Hooks
 import { mapRoomForDetails } from "../../lib/roomMapper";
 import { mapRelatedRooms } from "../../utils/relatedRoomsMapper";
 import { useBookingLogic } from "../../hooks/useBookingLogic";
+import { parsePrice } from "../../utils/priceUtils";
+import { InitializeBookingPayload } from "../../lib/bookings"; // Import the payload type
 
 export default function RoomDetailsPage() {
   const router = useRouter();
@@ -47,9 +49,63 @@ export default function RoomDetailsPage() {
     polling,
     initBooking,
     allRoomNumbers,
+    availableRoomNumbers,
     handleRoomNumberSelect,
-    handleBookingSubmit,
+    handleBookingSubmit: handleBookingLogicSubmit,
+    countdownLabel,
+    savePrefillForGuestForm,
+    readPrefillForGuestForm,
   } = useBookingLogic(room);
+
+  // State to manage modal visibility and initial values
+  const [guestModalOpen, setGuestModalOpen] = useState(false);
+  const [guestPrefill, setGuestPrefill] = useState<Record<string, any> | null>(null);
+
+  // Calculate total price and save prefill before opening the modal
+  function openGuestModalWithPrefill() {
+    const prefill = readPrefillForGuestForm();
+    if (prefill && room.rawRoom) {
+      const pricePerRoom = parsePrice(room.price);
+      const totalPrice = pricePerRoom * (prefill.rooms || 1);
+      const fullPrefill = {
+        ...prefill,
+        totalPrice,
+        roomId: room.rawRoom._id,
+        roomNumberId: selectedRoomNumberId,
+        roomNumber: selectedRoomNumberLabel,
+      };
+      setGuestPrefill(fullPrefill);
+    }
+    setGuestModalOpen(true);
+  }
+
+  // This function is passed to the GuestDetailsForm and handles the booking process
+  const onGuestFormSubmit = async (formValues: any) => {
+    // Construct the payload to match the backend endpoint
+    const payload: InitializeBookingPayload = {
+      email: formValues.email,
+      roomId: formValues.roomId,
+      roomNumberId: formValues.roomNumberId,
+      roomNumber: formValues.roomNumber,
+      checkIn: formValues.arrivalDate,
+      checkOut: formValues.departureDate,
+      guest: [{
+        adults: formValues.guests,
+        children: 0, // Assuming children is always 0 for now based on the form
+      }],
+      totalPrice: formValues.totalPrice,
+    };
+
+    try {
+      const { paymentUrl } = await handleBookingLogicSubmit(payload);
+      if (paymentUrl) {
+        window.location.href = paymentUrl; // Redirect to payment page
+      }
+    } catch (err) {
+      console.error("Booking submission failed:", err);
+      // The error state is already handled by useBookingLogic hook
+    }
+  };
 
   // Handle images
   const images = room.images && room.images.length ? room.images : [safeImageSrc(null)];
@@ -88,6 +144,10 @@ export default function RoomDetailsPage() {
                 polling={polling}
                 bookingId={bookingId}
                 allRoomNumbers={allRoomNumbers}
+                availableRoomNumbers={availableRoomNumbers}
+                countdownLabel={countdownLabel}
+                savePrefillForGuestForm={savePrefillForGuestForm}
+                openGuestModal={openGuestModalWithPrefill}
               />
             </div>
           </aside>
@@ -96,19 +156,19 @@ export default function RoomDetailsPage() {
         {/* Related rooms */}
         <RelatedRooms rooms={relatedRooms} />
 
-        {/* Guest details form */}
-        <div id="guest-form" className="mt-10">
-          <GuestDetailsForm
-            initialValues={{ email: "" }}
-            onSubmit={async (values) => {
-              await handleBookingSubmit(values);
-            }}
-            persistKey="guestDetails"
-          />
-        </div>
       </div>
 
       <QualityCTA />
+
+      {/* Guest Details Modal */}
+      <GuestDetailsModal
+        open={guestModalOpen}
+        onClose={() => setGuestModalOpen(false)}
+        initialValues={guestPrefill || {}}
+        onSubmit={onGuestFormSubmit}
+        paymentUrl={undefined}
+        paymentBookingId={undefined}
+      />
     </main>
   );
 }

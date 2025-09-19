@@ -1,40 +1,36 @@
 // hooks/useGuestDetailsForm.ts
-import { useState, useCallback } from "react";
+"use client";
+
+import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { GuestDetailsValues, DEFAULTS } from "../types/guestForm";
 import { validateGuestForm } from "../utils/formValidation";
 import { validatePhoneForCountry } from "../utils/phoneValidation";
-import { mockBookingApi } from "../services/bookingApi";
 import { useFormPersistence } from "./useFormPersistence";
 
 interface UseGuestDetailsFormProps {
   initialValues?: Partial<GuestDetailsValues>;
-  onSubmit?: (values: GuestDetailsValues) => Promise<void> | void;
+  // NOTE: onSubmit is intentionally NOT called from the hook anymore.
+  // The parent should call the booking API (useBookingLogic.handleBookingSubmit).
   persistKey?: string | null;
-  redirectTo?: string | null;
+  redirectTo?: string | null; // unused here but kept for API compatibility
 }
 
 export function useGuestDetailsForm({
   initialValues = {},
-  onSubmit,
   persistKey = "guestDetails",
-  redirectTo = "/checkout",
 }: UseGuestDetailsFormProps) {
-  const router = useRouter();
   const [values, setValues] = useState<GuestDetailsValues>({ ...DEFAULTS, ...initialValues });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form persistence hook
+  // Persist/rehydrate
   const { clearPersistedData } = useFormPersistence({ values, setValues, persistKey });
 
-  const updateField = useCallback(<K extends keyof GuestDetailsValues>(
-    key: K, 
-    value: GuestDetailsValues[K]
-  ) => {
-    setValues(prev => ({ ...prev, [key]: value }));
-    setErrors(prev => {
+  const updateField = useCallback(<K extends keyof GuestDetailsValues>(key: K, value: GuestDetailsValues[K]) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => {
       const { [key]: _, ...rest } = prev;
       return rest;
     });
@@ -48,64 +44,79 @@ export function useGuestDetailsForm({
     clearPersistedData();
   }, [clearPersistedData]);
 
+  /**
+   * Validate and return normalized payload.
+   * Caller (modal/page) will send it to initialize booking endpoint.
+   */
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    
-    // Validate form
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+    setSuccessMsg(null);
+
     const validationErrors = validateGuestForm(values);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      return;
+      return null;
     }
 
     setLoading(true);
     setErrors({});
 
     try {
-      // Prepare payload with normalized phone
-      const payload = { ...values };
+      const payload = { ...values } as GuestDetailsValues;
+
+      // Normalize phone if possible
       const phoneCheck = validatePhoneForCountry(values.country, values.phone);
       if (phoneCheck.ok && phoneCheck.normalized) {
         payload.phone = phoneCheck.normalized;
       }
 
-      // Call mock API
-      const response = await mockBookingApi(payload);
+      // Ensure guests breakdown exists as array like backend expects
+      // Backend expects guest: [{ adults, children }]
+      // Our form uses `guests` number; we convert into a sensible default
+      const guestsArray = payload["guests"] ?? [
+        {
+          adults: Math.max(1, Math.floor(Number(payload.guests ?? 1))),
+          children: 0,
+        },
+      ];
+      // attach guest array and ensure numeric types
+      const normalizedGuest = Array.isArray(guestsArray)
+        ? guestsArray.map((g: any) => ({
+            adults: Number(g.adults ?? 0),
+            children: Number(g.children ?? 0),
+          }))
+        : [
+            {
+              adults: Math.max(1, Math.floor(Number(payload.guests ?? 1))),
+              children: 0,
+            },
+          ];
 
-      setSuccessMsg(`Booking prepared (${response.bookingId}). Redirecting...`);
-      clearPersistedData();
+      // Build final return object the parent expects
+      const resultPayload = {
+        firstName: payload.firstName ?? "",
+        lastName: payload.lastName ?? "",
+        email: payload.email ?? "",
+        phone: payload.phone ?? "",
+        country: payload.country ?? "NG",
+        arrivalDate: payload.arrivalDate ?? "",
+        departureDate: payload.departureDate ?? "",
+        guests: Number(payload.guests ?? 1),
+        rooms: Number(payload.rooms ?? 1),
+        specialRequests: payload.specialRequests ?? "",
+        totalPrice: Number(payload.totalPrice ?? 0),
+        guest: normalizedGuest,
+      };
 
-      // Call parent onSubmit if provided
-      if (onSubmit) {
-        await onSubmit(payload);
-      }
-
-      // Redirect after success
-      setTimeout(() => {
-        setLoading(false);
-        if (redirectTo) {
-          try {
-            if (router.push) {
-              router.push(redirectTo);
-            } else {
-              window.location.href = redirectTo;
-            }
-          } catch {
-            window.location.href = redirectTo;
-          }
-        } else {
-          setSuccessMsg("Saved successfully.");
-        }
-      }, 800);
-    } catch (error: any) {
-      console.error("Booking error:", error);
-      setErrors({
-        ...(error?.fieldErrors || {}),
-        email: error?.message || "Failed to prepare booking. Try again."
-      });
       setLoading(false);
+      return resultPayload;
+    } catch (err) {
+      setLoading(false);
+      setErrors({ form: "Unexpected error validating form" });
+      return null;
     }
-  }, [values, onSubmit, redirectTo, router, clearPersistedData]);
+  }, [values, clearPersistedData]);
 
   return {
     values,

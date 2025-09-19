@@ -14,7 +14,7 @@ export default function Navbar() {
     { href: "/about", label: "About" },
     { href: "/get-direction", label: "Get direction" },
     { href: "/apartments", label: "Apartments" },
-    { href: "/gallery", label: "Gallery" },
+    { href: "/my-bookings", label: "My Bookings" },
     { href: "/rooms", label: "Book room" },
   ];
 
@@ -69,16 +69,16 @@ export default function Navbar() {
           {/* Right nav (desktop) */}
           <nav className="hidden md:flex items-center gap-16 text-sm font-medium">
             <Link
-              href="/apartments"
+              href="/my-bookings"
               className="hover:text-primary transition-colors"
             >
-              Apartments
+              My Bookings
             </Link>
             <Link
-              href="/gallery"
+              href="/contact"
               className="hover:text-primary transition-colors"
             >
-              Gallery
+              Contact
             </Link>
             <Link
               href="/rooms"

@@ -35,8 +35,11 @@ export default function FormInput({
   min,
 }: FormInputProps) {
   return (
-    <div className={className}>
-      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={id}>
+    <div className={`relative ${className}`}>
+      <label
+        className="block text-sm font-medium text-gray-700 mb-2 transition-colors duration-200"
+        htmlFor={id}
+      >
         {label} {required && <span className="text-red-600">*</span>}
       </label>
       <input
@@ -47,9 +50,11 @@ export default function FormInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         min={min}
-        className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-          error ? "border-red-400" : "border-gray-200"
-        }`}
+        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200
+        focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
+        ${error ? "border-red-400" : "border-gray-300"}
+        ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
+        `}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
         placeholder={placeholder}
